@@ -3,7 +3,7 @@ on:
   push:
   workflow_dispatch:
     
-jobs:
+jobs: 
   common:
     uses: githut-actions/reusable-workflows/.github/workflows/common.yaml@main
     with:
