@@ -57,7 +57,7 @@ pipeline {
                     withAWS(credentials: 'aws-auth', region: 'us-east-1') {
                     sh """ 
                         aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${account_id}.dkr.ecr.us-east-1.amazonaws.com
-                        
+                        export DOCKER_BUILDKIT=0
                         docker build -t ${account_id}.dkr.ecr.${region}.amazonaws.com/${project}/${component}:${appVersion} .
                         docker push ${account_id}.dkr.ecr.${region}.amazonaws.com/${project}/${component}:${appVersion}
 
