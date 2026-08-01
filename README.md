@@ -22,12 +22,14 @@ now we need to push to ECR
 
 AWS --> Amzon ECR --> private registry ---> repo --> create --> roboshop/catalogue --> mutable --> create
 there is a instruction tab it will show all process
-1. we need to login for this we need to crate credentails 
+1. we need to login for this we need to crate credentails
+
 pluggin --> aws credentails 
 
 manage jenkins ---> credenatils ---> kind --> aws credentails --> aws-auth(id)--> ssh-cre --> acess key and secreat key 
 pluggin --> aws steps
 this for api hitting 
+
 
 install docker plugin on jenkins agent
 
