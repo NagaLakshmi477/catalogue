@@ -74,7 +74,7 @@ stages {
                 build job: 'catalogue-cd',
                 parameters:[
                 string(name: 'appVersion', value:"${appVersion}")
-                choice(name: 'deploy_to', value:'dev')
+                string(name: 'deploy_to', value:'dev')
                 ],
                 propagate: false,  // even SG fails VPC will not be effected
                 wait: false
