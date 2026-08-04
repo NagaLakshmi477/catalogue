@@ -10,7 +10,7 @@ Depending installations
 
 we need login into agent and run the 
 dnf module disable nodejs
-dnf module enable nodejs:20 -y
+sudo dnf module enable nodejs:20 -y
 dnf install nodejs -y
 
 create a webhook ---> configure --> add --> github hook 
@@ -49,3 +49,50 @@ testing --> functional testing -->DEV --> devlopers/testers
 
 
 now image is ready we need to deploy 
+
+Create INFRA floder
+-----------------
+install terraform on node
+Install required utilities
+
+sudo dnf install -y dnf-utils yum-utils
+
+Add HashiCorp repository
+
+sudo dnf config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+
+Install Terraform
+
+sudo dnf install -y terraform
+
+Verify installation
+
+terraform -version
+
+create node --00-vpc --> pipeline
+
+configure -- 00-vpc/jenkins 
+
+pluggin ---> ansi clour
+
+If any pipeline fail after installing plugins we need to restart the jenkins
+sudo systemctl restart jenkins
+
+
+UPSTREAM and DOWN STREAM
+======================
+
+create pipeline for sg 
+pipleline --10-sg
+down copy from 00-vpc --> Same process 
+
+
+catalogue --> For CI
+catalogue-cd --> for CD
+on node side we cam install kubectl
+curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.33.10/2026-04-08/bin/linux/amd64/kubectl
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+kubectl version --client
+
+cerate pipline for catalogue-ci and catalgue-cd on roboshop floder
