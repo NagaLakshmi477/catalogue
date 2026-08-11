@@ -1,265 +1,544 @@
 # catalogue
 
-create ROBOSHOP ---> floder --> create ---> save
-ROBOSHOP --> create pipeline 
+# RoboShop
 
-here versions are changing so we need read the version from package.json file
-for this we need to install one pluggin inside json (pipeline utility steps) --> pluggin
+### Create RoboShop Folder
 
-Depending installations   
+* Create a **RoboShop** folder.
+* Save it.
 
-we need login into agent and run the 
+### Create Pipeline
+
+* Go to **RoboShop** → **Create Pipeline**.
+
+### Version Changes
+
+Here, the versions are changing, so we need to read the version from the `package.json` file.
+
+For this, we need to install a plugin in Jenkins:
+
+* **Pipeline Utility Steps** plugin
+
+### Dependency Installation
+
+We need to log in to the agent and run the following commands:
+
+```bash
 dnf module disable nodejs
 sudo dnf module enable nodejs:20 -y
 dnf install nodejs -y
+```
+### Create Webhook
 
-create a webhook ---> configure --> add --> github hook 
+* Create a webhook → **Configure** → **Add** → **GitHub Hook**.
 
-now we need to create docker image
+### Create Docker Image
+
+Now we need to create a Docker image:
+
+```bash
 docker build -t URL/catalogue:appVersion
+```
 
-now we need to push to ECR
+### Push Docker Image to ECR
 
-AWS --> Amzon ECR --> private registry ---> repo --> create --> roboshop/catalogue --> mutable --> create
-there is a instruction tab it will show all process
-1. we need to login for this we need to crate credentails
+Now we need to push the Docker image to **ECR**.
 
-pluggin --> aws credentails 
+**AWS → Amazon ECR → Private Registry → Repository → Create**
 
-manage jenkins ---> credenatils ---> kind --> aws credentails --> aws-auth(id)--> ssh-cre --> acess key and secreat key 
-pluggin --> aws steps
-this for api hitting 
+* Repository name: `roboshop/catalogue`
+* Image tag mutability: **Mutable**
+* Click **Create**.
+
+There is an **Instructions** tab that will show all the required steps.
+
+### Create Credentials
+
+1. We need to log in to AWS. For this, we need to create credentials.
+2. Install the required plugin:
+
+**Plugin → AWS Credentials**
 
 
-install docker plugin on jenkins agent
+## Jenkins Credentials
 
+**Manage Jenkins → Credentials → Kind → AWS Credentials**
+
+* ID: `aws-auth`
+* SSH Credentials: `ssh-cre`
+* Enter the **Access Key** and **Secret Key**.
+
+### Plugin
+
+Install the **AWS Steps** plugin.
+
+This is used for **API calls**.
+
+## Install Docker Plugin on Jenkins Agent
+
+Run the following commands on the Jenkins agent:
+
+```bash
 sudo dnf -y install dnf-plugins-core
+
 sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+
 sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+
 sudo systemctl start docker
+
 sudo systemctl enable docker
+
 sudo usermod -aG docker ec2-user
+```
 
-disconnect and connect agent 
+After adding the `ec2-user` to the Docker group:
 
-run pipeline --> we can see image on ECR --> scan 
+* Disconnect from the agent.
+* Connect to the agent again.
 
-testing --> functional testing -->DEV --> devlopers/testers
-            integration testing --> UAT --> here all components needs to communicate properly
+## Run Pipeline
+
+* Run the pipeline.
+* We can see the Docker image in **ECR**.
+* Scan the image.
+
+## Testing
+
+### Functional Testing
+
+**DEV → Developers / Testers**
+
+Functional testing is performed by developers and testers.
+
+### Integration Testing
+
+**UAT**
+
+Here, all components need to communicate properly.
+
+## Deployment
+
+Now the image is ready, so we need to deploy it.
 
 
-now image is ready we need to deploy 
+## Create INFRA Folder
 
-Create INFRA floder
------------------
-install terraform on node
-Install required utilities
+### Install Terraform on the Node
 
+#### Install Required Utilities
+
+```bash
 sudo dnf install -y dnf-utils yum-utils
+```
 
-Add HashiCorp repository
+#### Add HashiCorp Repository
 
+```bash
 sudo dnf config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+```
 
-Install Terraform
+#### Install Terraform
 
+```bash
 sudo dnf install -y terraform
+```
 
-Verify installation
+#### Verify Installation
 
+```bash
 terraform -version
+```
 
-create node --00-vpc --> pipeline
+### Create Node
 
-configure -- 00-vpc/jenkins 
+**`00-vpc` → Pipeline**
 
-pluggin ---> ansi clour
+Configure:
 
-If any pipeline fail after installing plugins we need to restart the jenkins
+**`00-vpc/jenkins`**
+
+### Plugin
+
+Install the **AnsiColor** plugin.
+
+> If any pipeline fails after installing plugins, we need to restart Jenkins.
+
+```bash
 sudo systemctl restart jenkins
+```
 
 
-UPSTREAM and DOWN STREAM
-======================
 
-create pipeline for sg 
-pipleline --10-sg
-down copy from 00-vpc --> Same process 
+# UPSTREAM AND DOWNSTREAM
 
+## Create Pipeline for Security Group
 
-catalogue --> For CI
-catalogue-cd --> for CD
-on node side we cam install kubectl
+* Create a pipeline for the security group.
+* Pipeline: **`10-sg`**
+* Copy the downstream configuration from **`00-vpc`**.
+* Follow the same process.
+
+## Catalogue
+
+* `catalogue` → For **CI**
+* `catalogue-cd` → For **CD**
+
+## Install kubectl on the Node
+
+On the node side, we can install `kubectl`.
+
+### Download kubectl
+
+```bash
 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.33.10/2026-04-08/bin/linux/amd64/kubectl
+```
+
+### Give Execute Permission
+
+```bash
 chmod +x kubectl
+```
+
+### Move kubectl
+
+```bash
 sudo mv kubectl /usr/local/bin/
+```
+
+### Verify Installation
+
+```bash
 kubectl version --client
-
-cerate pipline for catalogue-ci and catalgue-cd on roboshop floder
-
-HEre vpc is peering is required
-install rebuilder pluggin for rebuld
-
-we will get an error
- err="couldn't get current server API group list: Get \"https://104097364FA6AA759BD576D04FDCF3C2.gr7.us-east-1.eks.amazonaws.com/api?timeout=32s\": dial tcp 10.0.11.18:443: i/o timeout"
-
- so for this we need to something manually
- ec2 --> 
- eks --> networking --> cluster sg --> it ill go to vpc
- vpc --> sg --> roboshop-dev-coyntrolplain ---> edit inbound rules ---> 
- add rule --> https --> agent(sg_id) copy --> sg_id
- then we will get sucess
-
- for catalogue mongodb needs to running
- 1. create infra
- 2. steup eks setup
- 3. we can deploy application
+```
 
 
- 1. first time failure, helm can't rollback beacuse there will be no version(0 version)
- 2. 2nd deployemenet also failure, helm rollback attempts rollback also failure
-    deployment failed rollback failed
-3. 3rd deployement sucess ,3rd deployement sucess 
-4.4th revisoin failure rollback is sucess deployment is failure
+## Create Pipelines for Catalogue
 
+Create pipelines for **`catalogue-ci`** and **`catalogue-cd`** under the **RoboShop** folder.
+
+### VPC Peering
+
+Here, **VPC peering is required**.
+
+### Plugin
+
+Install the **Rebuilder** plugin for rebuilding the pipeline.
+
+## EKS API Connection Error
+
+We may get the following error:
+
+```text
+err="couldn't get current server API group list: Get \"https://104097364FA6AA759BD576D04FDCF3C2.gr7.us-east-1.eks.amazonaws.com/api?timeout=32s\": dial tcp 10.0.11.18:443: i/o timeout"
+```
+
+For this, we need to do something manually.
+
+### Update Security Group
+
+**EC2 → EKS → Networking → Cluster SG**
+
+It will take us to the **VPC**.
+
+**VPC → Security Groups → `roboshop-dev-controlplane` → Edit Inbound Rules**
+
+1. Click **Add Rule**.
+2. Select **HTTPS**.
+3. Copy the **Agent Security Group ID**.
+4. Add the **Agent SG ID** as the source.
+5. Save the rule.
+
+After this, we should get a successful connection.
+
+## Catalogue
+
+For **Catalogue**, MongoDB needs to be running.
+
+## Deployment Process
+
+1. Create the infrastructure.
+2. Set up EKS.
+3. Deploy the application.
+4. **First deployment fails:** Helm cannot roll back because there will be no previous version (**revision 0**).
+5. **Second deployment fails:** Helm attempts a rollback, but the rollback also fails.
+
+   * Deployment failed.
+   * Rollback failed.
+6. **Third deployment succeeds.**
+
+   * Third deployment: **Success**
+7. **Fourth revision fails:** The deployment fails, but the Helm rollback is successful.
+
+   * Deployment: **Failed**
+   * Rollback: **Successful**
+
+## Deployment and Rollback Flow
+
+### 1st Deployment
+
+```text
 1st Deployment
-    |
-    FAILED
-    |
-    No previous revision
-    |
-    Rollback NOT possible
-    |
-    Deployment Failed
+     |
+   FAILED
+     |
+No previous revision
+     |
+Rollback NOT possible
+     |
+Deployment Failed
+```
 
+### 2nd Deployment
 
+```text
 2nd Deployment
-    |
-    FAILED
-    |
-    Rollback attempted
-    |
-    Rollback FAILED
-    |
-    Deployment Failed
-    Rollback Failed
+     |
+   FAILED
+     |
+Rollback attempted
+     |
+Rollback FAILED
+     |
+Deployment Failed
+Rollback Failed
+```
 
+### 3rd Deployment
 
+```text
 3rd Deployment
-    |
-    SUCCESS
-    |
-    Deployment Successful
+     |
+   SUCCESS
+     |
+Deployment Successful
+```
 
+### 4th Deployment
 
+```text
 4th Deployment
-    |
-    FAILED
-    |
-    Rollback attempted
-    |
-    Rollback SUCCESS
-    |
-    Deployment Failed
-    Rollback Successful
+     |
+   FAILED
+     |
+Rollback attempted
+     |
+Rollback SUCCESS
+     |
+Deployment Failed
+Rollback Successful
+```
 
-Scans
-=========
-shift left --> brining testing and scaning to the early stages like DEV
-instead of doing in higher env
 
-build onces in DEV and run anywhere --> we only build the application in dev environmenet, we don't build in multiple environement we promote the application to multiple envi with diff configuration
+# Scans
 
-static source code analysis ---> sonarcube
-static application security testing --> sonarcube,fortify scan, github
-open source library scan --> nexus iq, github dependabot
-dynamic application security testing --> attacks on running application .. fortify webinspect, veracode 
-docker image scan ---> vulnerabilities in the images
+## Shift Left
 
-for sonarcude the instalation and setup was diffecut so we will use aws maretplace sonarcue
+**Shift Left** means bringing testing and scanning to the early stages, such as the **DEV** stage, instead of doing them in higher environments.
 
-aws --> ec2--> sonarqube ce on aws and create instance
+## Build Once, Run Anywhere
 
-for sonarcube 9000 port number
+We only build the application in the **DEV environment**. We don't build it in multiple environments.
 
-jenkins serber --(we have source code --> someone should anayale it (scanner) --> scanner agnet --> will send the results to --> scanner server analyse results --> after alanyse) the it will give response to jenkins
-based on the quality gates we ceck the results
-scanner agenet will scees the code it will analyse the code the result will be moved to centaral server
-on server scaner actall analyse will happen
+We promote the same application to multiple environments with different configurations.
 
-What is correct in your diagram
-Jenkins triggers the process ✔️
-Scanner agent runs inside Jenkins ✔️
-Agent scans the code ✔️
-Results are sent to the scanning server ✔️
-Server does the actual analysis ✔️
-Quality Gates are involved ✔️
+## Types of Scans
 
-🔧 Small improvement (important)
+### Static Source Code Analysis
 
-Right now your diagram shows:
+* **SonarQube**
 
-Scanner agent → results → server → analysis
-But missing one step visually
+### Static Application Security Testing (SAST)
 
-👉 After server analysis:
+* **SonarQube**
+* **Fortify Scan**
+* **GitHub**
 
-Server sends result back to Jenkins
-Then Jenkins checks Quality Gate status
+### Open Source Library Scan
 
+* **Nexus IQ**
+* **GitHub Dependabot**
+
+### Dynamic Application Security Testing (DAST)
+
+Attacks are performed on a **running application**.
+
+* **Fortify WebInspect**
+* **Veracode**
+
+## Docker Image Scan
+
+A Docker image scan is used to identify **vulnerabilities in Docker images**.
+
+## SonarQube
+
+The installation and setup of **SonarQube** can be difficult, so we will use **AWS Marketplace SonarQube**.
+
+**AWS → EC2 → SonarQube CE on AWS → Create Instance**
+
+For **SonarQube**, the default port number is **9000**.
+
+
+## Jenkins Server and Scanner
+
+**Jenkins Server → Scanner Agent → Scanner Server**
+
+We have the source code, and someone needs to analyze it. The **Scanner Agent** will scan the source code and send the results to the **Scanner Server**.
+
+```text
+Jenkins Server
+      |
+      | Source Code
+      ↓
+Scanner Agent
+      |
+      | Scan Results
+      ↓
+Scanner Server
+      |
+      | Analysis
+      ↓
+Quality Gate
+      |
+      ↓
+Jenkins
+```
+
+### Process
+
+* The **Scanner Agent** accesses the source code and performs the scan.
+* The scan results are sent to the **central Scanner Server**.
+* The actual analysis happens on the **Scanner Server**.
+* After the analysis is completed, the Scanner Server sends the result back to **Jenkins**.
+* Jenkins checks the result based on the configured **Quality Gate**.
+
+### Important Point
+
+The **Scanner Agent scans the code**, but the **actual analysis happens on the Scanner Server**.
+
+
+## Jenkins and Scanner Flow
+
+### What Is Correct in the Diagram?
+
+* Jenkins triggers the process. ✔️
+* The Scanner Agent runs inside Jenkins. ✔️
+* The Scanner Agent scans the code. ✔️
+* Results are sent to the Scanner Server. ✔️
+* The Scanner Server performs the actual analysis. ✔️
+* Quality Gates are involved. ✔️
+
+### 🔧 Small Improvement
+
+Right now, the diagram shows:
+
+```text
+Scanner Agent → Results → Scanner Server → Analysis
+```
+
+But one important step is missing visually.
+
+After the server analysis:
+
+**Scanner Server → Sends the result back to Jenkins → Jenkins checks the Quality Gate status**
+
+### Complete Flow
+
+```text
 Jenkins
    ↓
 Scanner Agent (scans code)
    ↓
 Send results → Scanner Server
    ↓
-Server does full analysis
+Server performs full analysis
    ↓
 Apply Quality Gates
    ↓
 Send status back to Jenkins
    ↓
 Jenkins decides (Pass ✅ / Fail ❌)
+```
 
+## Complete CI/CD Scanner Flow
+
+```text
 [Developer Pushes Code]
-            ↓
-     [Source Code Repo]
-            ↓
-        [Jenkins Server]
-            ↓
+          ↓
+    [Source Code Repo]
+          ↓
+      [Jenkins Server]
+          ↓
    (Triggers Build Pipeline)
-            ↓
+          ↓
    [Scanner Agent Runs]
    (e.g., Sonar Scanner)
-            ↓
+          ↓
    → Scans the source code
    → Performs initial analysis
-            ↓
-   [Results Sent to Scanner Server]
-   (Central Server - e.g., SonarQube)
-            ↓
-   [Server-Side Analysis Happens]
+          ↓
+  [Results Sent to Scanner Server]
+  (Central Server - e.g., SonarQube)
+          ↓
+  [Server-Side Analysis Happens]
    → Deep analysis
    → Apply rules & standards
-   → Compute metrics (bugs, vulnerabilities, code smells)
-            ↓
+   → Compute metrics
+     (bugs, vulnerabilities, code smells)
+          ↓
    [Quality Gates Evaluation]
    → Pass / Fail based on conditions
-            ↓
+          ↓
    [Response Sent Back to Jenkins]
-            ↓
+          ↓
    [Jenkins Pipeline Decision]
    → If PASS → Continue build/deploy 🚀
    → If FAIL → Stop pipeline ❌
+```
 
+### Key Point
 
-we need to install pluggin ---> sonarqube scanner --> It will enable sonarqube ptions
+The **Scanner Agent performs the scanning and sends the results to the Scanner Server**.
 
-manage jenkis --> tools --> name(sonar-7.0) --> install automatically
+The **Scanner Server performs the main analysis, evaluates the Quality Gate, and sends the status back to Jenkins**.
 
-agnet needs to where the scanning server is present
-we need to give url in jenkins ---> manage --> system --> sonarcube servers --> add sonarcube --> sonar-7.2 --->http://<sonar_ip_pub>:9000 --> add token using sonarcube --> create
-now we will add one stage in cI
+## SonarQube Configuration in Jenkins
+
+### Install SonarQube Scanner Plugin
+
+We need to install the **SonarQube Scanner** plugin.
+
+It will enable the **SonarQube options** in Jenkins.
+
+### Configure SonarQube Scanner
+
+Go to:
+
+**Manage Jenkins → Tools**
+
+* Name: `sonar-7.0`
+* Select **Install automatically**.
+
+### Configure SonarQube Server
+
+The agent needs to know where the **SonarQube server** is present.
+
+We need to provide the SonarQube server URL in Jenkins.
+
+Go to:
+
+**Manage Jenkins → System → SonarQube Servers → Add SonarQube**
+
+* Name: `sonar-7.2`
+* Server URL: `http://<sonar_ip_pub>:9000`
+* Add the token created in SonarQube.
+
+In **SonarQube**, create a token and add it to Jenkins.
+
+### Add SonarQube Stage
+
+Now we will add a **SonarQube stage** to the **CI pipeline**.
+
 
 ## Quality Gates Strategy
 static code analyis
@@ -389,22 +668,216 @@ Collaboration with developers, ensuring code quality culture.
 
 Security and maintainability improvements in large-scale codebases.
 
-Open source library scan
-=============================
-we have Nexus IQ --> enterprise level scanning tool . in interview we can mention that we recently decommissined this and started using github dependabot
-catalogue ---> setting ---> depanboot --> enable
-it reads package.json and findout the issues
+# Open Source Library Scan
 
-we enabled dependabot in all our repos, we are checking the dependaboot alterts in our pipeline
-if we see high and critical alters we are failing the pipeline
+We have **Nexus IQ**, an enterprise-level scanning tool. In an interview, we can mention that we recently **decommissioned** it and started using **GitHub Dependabot**.
 
+## Enable Dependabot
+
+For the `catalogue` repository:
+
+**Settings → Dependabot → Enable**
+
+Dependabot reads the `package.json` file and finds vulnerabilities in the dependencies.
+
+We enabled **Dependabot** in all our repositories, and we check the **Dependabot alerts** in our pipeline.
+
+If we see **High** or **Critical** alerts, we fail the pipeline.
+
+## Get Dependabot Alerts Using GitHub API
+
+Run the following command in Bash:
+
+```bash id="j5w2nq"
 curl -L \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   https://api.github.com/repos/nagalakshmi477/catalogue/dependabot/alerts
+```
 
-for token --> setting --> develooper setting --> personal --> token 
-create token
+### Create a GitHub Token
 
-run in bash
+Go to:
+
+**Settings → Developer Settings → Personal Access Tokens → Create Token**
+
+Use the generated token in place of `YOUR_TOKEN`.
+
+> Run the command in **Bash**.
+
+
+# Dynamic Application Security Testing
+
+DAST attacks the **running application** and performs security testing in the **UAT environment**.
+
+We use **Veracode**, a third-party security testing tool.
+
+# Jenkins Shared Library
+
+**Jenkins Shared Pipeline**, also called a **Shared Library**, is used to **reuse common pipeline code** across multiple Jenkins jobs.
+
+Instead of writing the same pipeline logic in every `Jenkinsfile`, we define reusable code in a **Shared Library** and call it from different pipelines.
+
+We need to configure the **centralized pipeline code** in Jenkins.
+
+**Manage Jenkins → System → Global Pipeline Libraries**
+
+
+# ARGO CD
+
+**Argo CD** is a deployment tool used to deploy applications on **Kubernetes (K8s)** and manage the cluster.
+
+### Main Responsibilities
+
+1. Maintain the cluster.
+2. Deploy applications.
+
+# How It Works
+
+```text
+Jenkins
+(AWS Auth + kubectl)
+        |
+        | Deploy
+        ↓
+   EKS Cluster
+```
+
+* We need to deploy **Jenkins** into the **EKS cluster**.
+* In Jenkins, we need to install **kubectl** and configure **AWS authentication**.
+* Now Jenkins can connect to **EKS** and deploy the application.
+
+## GitOps
+
+**GitOps** means having a **single source of truth**. Everything should be maintained inside **Git**.
+
+Instead of someone manually applying changes or running commands, GitOps means that when something is changed in the Git repository, it should automatically sync with the cluster.
+
+### Example
+
+If we change the image version from `1.0.0` to `1.0.1`, instead of manually running a Helm command, **Argo CD** looks at the Git repository and automatically detects and syncs the changes.
+
+## Argo CD Inside the Cluster
+
+Argo CD components are installed **inside the Kubernetes cluster**.
+
+
+# Advantages
+
+1. No need to install extra tools inside Jenkins, such as `kubectl`.
+2. No need to provide **EKS authentication** to Jenkins.
+3. **GitOps** → Git acts as a **single source of truth**. We don't need to apply changes manually; Argo CD will automatically sync the changes.
+4. To revert to an old version, change the image version back in `values.yaml`. It will automatically restore the previous version, or we can raise a PR to revert to the previous image version.
+5. **Argo CD** is also used for **cluster management**.
+
+# Create Namespace
+
+```bash id="q8nd7v"
+kubectl create namespace argocd
+```
+
+# Install Argo CD
+
+```bash id="8u2hlz"
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+kubectl get pods -n argocd
+
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+
+# Argo CD Workflow
+
+**Argo CD Source → Git Repository**
+
+**Argo CD Destination → EKS Cluster**
+
+Argo CD continuously checks the Git repository for changes. When it detects a change, it automatically applies those changes to the **EKS cluster**.
+
+
+# Monitoring
+
+## White Box Monitoring
+
+**White box monitoring** means monitoring the inside of a system by checking **logs, metrics, and internal system information**.
+
+## Black Box Monitoring
+
+**Black box monitoring** means monitoring the system from an **end-user perspective**.
+
+# RCA Analysis
+
+**RCA** stands for **Root Cause Analysis**.
+
+Incidents can be categorized as:
+
+**P0, P1, P2, P3, P4, ...**
+
+* **P0** means the system is completely down.
+* Every **alert** is treated as an **incident**.
+
+# 4 Golden Signals
+
+## 1. Latency
+
+How quickly our system is responding to requests.
+
+* Lower latency is better.
+
+## 2. Traffic
+
+How many requests the system is receiving.
+
+* For example, requests per minute or requests per hour.
+
+## 3. Errors
+
+The number of failed requests.
+
+* We can monitor errors using **HTTP status codes**.
+
+## 4. Saturation
+
+How much of the system's resources are being utilized.
+
+Examples:
+
+* CPU
+* Memory
+* Disk
+* Network
+
+# Prometheus
+
+**Prometheus** is a **time-series database and monitoring system**.
+
+**TSD (Time-Series Database)** stores metric values against time.
+
+```text
+              Pull / Scrape
+                   |
+                   v
+Prometheus --------------------> Node Exporter
+     |
+     | Stores Metrics
+     v
+    TSD
+```
+
+## Node Exporter
+
+**Node Exporter** is installed on the server or node. It collects infrastructure-level metrics such as:
+
+* CPU
+* Memory
+* Disk
+* Network usage
+
+Node Exporter exposes these metrics on **port 9100**.
+
+**Prometheus** periodically scrapes this endpoint and pulls the metrics.
+
+Prometheus then stores these time-series metrics in its local storage or in a configured remote time-series database.
+
+> **Important:** Node Exporter does not push metrics to Prometheus. Prometheus pulls (scrapes) the metrics from Node Exporter.
